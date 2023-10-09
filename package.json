@@ -3,19 +3,24 @@
   "displayName": "ChatGptSupport",
   "description": "Chatgpt augment softwar development",
   "version": "0.0.1",
+  "repository": {
+    "url": "https://github.com/Nocreeds/chatgptsupport"
+  },
   "engines": {
     "vscode": "^1.82.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onView:chatgpt.chatView"
+  ],
   "main": "./extension.js",
   "contributes": {
     "commands": [
       {
         "command": "extension.startChatGPT",
-        "title": "Hello World"
+        "title": "startChatGPT"
       }
     ]
   },
@@ -36,6 +41,8 @@
   },
   "dependencies": {
     "@types/axios": "^0.14.0",
-    "axios": "^1.5.1"
+    "axios": "^1.5.1",
+    "chatgpt": "^5.2.5",
+    "openai": "^4.11.1"
   }
 }

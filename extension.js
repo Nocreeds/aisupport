@@ -2,9 +2,13 @@ const vscode = require('vscode');
 const { default: axios } = require('axios');
 const OpenAi = require('openai');
 function activate(context) {
-    const config = vscode.workspace.getConfiguration('chatgpt');
+
+    const config = vscode.workspace.getConfiguration('aisupport');
     const provider = new OpenAiViewProvider(context.extensionUri);
     provider.initopenai(config.get("apikey"),config.get("organization"))
+    context.subscriptions.push(vscode.window.registerWebviewViewProvider(OpenAiViewProvider.viewType, provider, {
+        webviewOptions: { retainContextWhenHidden: true }
+    }));
 
     context.subscriptions.push();
 }
@@ -13,10 +17,6 @@ class OpenAiViewProvider{
 
     constructor(_extensionUri) {
         this._extensionUri = _extensionUri;
-        this.selectedInsideCodeblock = false;
-        this.pasteOnClick = true;
-        this.keepConversation = true;
-        this.timeoutLength = 60;
     }
 
     initopenai (apiKey, organization){
@@ -38,34 +38,33 @@ class OpenAiViewProvider{
         // set the HTML for the webview
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
         // add an event listener for messages received by the webview
-/*         webviewView.webview.onDidReceiveMessage(data => {
+         webviewView.webview.onDidReceiveMessage(data => {
             switch (data.type) {
                 case 'codeSelected':
                     {
                         // do nothing if the pasteOnClick option is disabled
-                        if (!this.pasteOnClick) {
-                            break;
-                        }
                         let code = data.value;
                         code = code.replace(/([^\\])(\$)([^{0-9])/g, "$1\\$$$3");
                         // insert the code as a snippet into the active text editor
-                        vscode.window.activeTextEditor?.insertSnippet(new vscode.SnippetString(code));
+                        vscode.window.activeTextEditor.insertSnippet(new vscode.SnippetString(code));
                         break;
                     }
-                case 'prompt':
-                    {
-                        //this.search(data.value);
-                    }
             }
-        }); */
+        });
     }
 
     _getHtmlForWebview(webview) {
+      const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'webview', 'main.js'));
+        const microlight = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'webview', 'scripts', 'microlight.js'));
+        const showdown = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'webview', 'scripts', 'showdown.js'));
         return `<!DOCTYPE html>
 			<html lang="en">
 			<head>
 				<meta charset="UTF-8">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
+				<script src="https://cdn.tailwindcss.com"></script>
+				<script src="${showdown}"></script>
+				<script src="${microlight}"></script>
 				<style>
 				.code {
 					white-space : pre;
@@ -76,12 +75,14 @@ class OpenAiViewProvider{
 
 				<div id="response" class="pt-6 text-sm">
 				</div>
+
+				<script src="${scriptUri}"></script>
 			</body>
 			</html>`;
     }
 
 }
-
+OpenAiViewProvider.viewType = 'aisupport.chatView';
 // this method is called when your extension is deactivated
 function deactivate() {}
 

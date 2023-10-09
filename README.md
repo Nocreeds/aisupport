@@ -1,6 +1,6 @@
-# chatgptsupport README
+# Aisupport README
 
-This is the README for your extension "chatgptsupport". After writing up a brief description, we recommend including the following sections.
+This is the README for your extension "aisupport". After writing up a brief description, we recommend including the following sections.
 
 ## Features
 

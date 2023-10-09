@@ -1,10 +1,10 @@
 {
-  "name": "chatgptsupport",
-  "displayName": "ChatGptSupport",
-  "description": "Chatgpt augment softwar development",
+  "name": "aisupport",
+  "displayName": "AiSupport",
+  "description": "Ai augmented softwar development",
   "version": "0.0.1",
   "repository": {
-    "url": "https://github.com/Nocreeds/chatgptsupport"
+    "url": "https://github.com/Nocreeds/aisupport"
   },
   "engines": {
     "vscode": "^1.82.0"
@@ -13,16 +13,50 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:chatgpt.chatView"
+    "onView.aisupport.chatView"
   ],
   "main": "./extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "extension.startChatGPT",
-        "title": "startChatGPT"
+        "command": "extension.startAi",
+        "title": "startAi"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "aisupport",
+          "title": "AiSupport",
+          "icon": "resources/icon.png"
+        }
+      ]
+    },
+    "views": {
+      "aisupport": [
+				{
+					"type": "webview",
+					"id": "aisupport.chatView",
+					"name": "AiSupport"
+				}
+      ]
+    },
+    "configuration": {
+      "title": "AiSupport",
+      "type": "object",
+      "properties": {
+        "aisupport.apikey": {
+          "type": "string",
+          "description": "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",
+          "order": 1
+        },
+        "aisupport.organization": {
+          "type": "string",
+          "description": "org-aWuJHW5k7Nfj1YHKDpuQLIu0",
+          "order": 2
+        }
+      }
+    }
   },
   "scripts": {
     "lint": "eslint .",

@@ -1,30 +1,50 @@
 const vscode = require('vscode');
-const { default: axios } = require('axios');
 const OpenAi = require('openai');
 function activate(context) {
 
     const config = vscode.workspace.getConfiguration('aisupport');
+
+    vscode.window.createWebviewPanel
     const provider = new OpenAiViewProvider(context.extensionUri);
-    provider.initopenai(config.get("apikey"),config.get("organization"))
+    provider.setApi( config.get('apikey'),config.get('organization'));
+    console.log("Hey")
+    console.log(config.get('apikey'),config.get('organization'));
     context.subscriptions.push(vscode.window.registerWebviewViewProvider(OpenAiViewProvider.viewType, provider, {
         webviewOptions: { retainContextWhenHidden: true }
     }));
-
     context.subscriptions.push();
+    const commandHandler = (usercommand, syscommand) => {
+     provider.askAi(config.get(usercommand),config.get(syscommand));
+    };
+    const commandExplain = vscode.commands.registerCommand('aisupport.explain', () => {
+        commandHandler('promptPrefix.explain', 'system.explain');
+    });
+    const commandRefactor = vscode.commands.registerCommand('aisupport.refactor', () => {
+        commandHandler('promptPrefix.refactor', 'system.refactor');
+    });
+    const commandOptimize = vscode.commands.registerCommand('aisupport.optimize', () => {
+        commandHandler('promptPrefix.optimize', 'system.optimize');
+    });
+    const commandSecure = vscode.commands.registerCommand('aisupport.secure', () => {
+        commandHandler('promptPrefix.secure', 'system.secure');
+    });
+    context.subscriptions.push(commandExplain, commandRefactor, commandOptimize, commandSecure);
 }
+exports.activate = activate;
 
 class OpenAiViewProvider{
 
-    constructor(_extensionUri) {
+    constructor(_extensionUri)  {
         this._extensionUri = _extensionUri;
     }
 
-    initopenai (apiKey, organization){
-        const openai = new OpenAi.OpenAI({
-        apiKey: apiKey,
-        organization:organization
-    })}
-
+    setApi (apiKey, organization) {
+        this.openai = new OpenAi.OpenAI({
+            apiKey: apiKey,
+            organization: organization
+        });
+    }
+    
     resolveWebviewView(webviewView, context, _token) {
         this._view = webviewView;
         // set options for the webview
@@ -36,9 +56,9 @@ class OpenAiViewProvider{
             ]
         };
         // set the HTML for the webview
-        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+        this._view.webview.html = this._getHtmlForWebview(webviewView.webview);
         // add an event listener for messages received by the webview
-         webviewView.webview.onDidReceiveMessage(data => {
+        this._view.webview.onDidReceiveMessage(data => {
             switch (data.type) {
                 case 'codeSelected':
                     {
@@ -49,22 +69,72 @@ class OpenAiViewProvider{
                         vscode.window.activeTextEditor.insertSnippet(new vscode.SnippetString(code));
                         break;
                     }
+                    case 'prompt':
+                    {
+                        this.askAi(data.value);
+                    }
             }
+            
         });
     }
 
+    async askAi(system,content){
+
+        if (!this._view) {
+            await vscode.commands.executeCommand('aisupport.chatView.focus');
+        }
+        else {
+            this._view.show(true);
+        }
+        let prompt = '';
+        const selection = vscode.window.activeTextEditor.selection;
+        const selectedText = vscode.window.activeTextEditor.document.getText(selection);
+        if (selection && selectedText) {
+            // If there is a selection, add the prompt and the selected text to the search prompt
+                prompt = `${content}\n\`\`\`\n${selectedText}\n\`\`\``;
+        }
+        else {
+            // Otherwise, just use the prompt if user typed it
+                prompt = content;
+        }
+
+        try {
+            const completion = await this.openai.chat.completions.create({
+                messages: [
+                    { role: 'system', content: system },
+                    { role: 'user', content: prompt }
+                ],
+                model: "gpt-3.5-turbo",
+            });
+            
+            const response = completion.choices[0].message;
+            if (this._view) {
+                this._view.show(true);
+
+                this._view.webview.postMessage({ type: 'addResponse', value: response });
+            }
+        } catch (error) {
+            console.error(error);
+            return 'An error occurred while processing the request.';
+        }
+        console.log("Answer")
+    }
+
+    
+
     _getHtmlForWebview(webview) {
-      const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'webview', 'main.js'));
-        const microlight = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'webview', 'scripts', 'microlight.js'));
-        const showdown = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'webview', 'scripts', 'showdown.js'));
+        const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'main.js'));
+        const microlightUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'scripts', 'microlight.min.js'));
+        const tailwindUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'scripts', 'showdown.min.js'));
+        const showdownUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'scripts', 'tailwind.min.js'));
         return `<!DOCTYPE html>
 			<html lang="en">
 			<head>
 				<meta charset="UTF-8">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				<script src="https://cdn.tailwindcss.com"></script>
-				<script src="${showdown}"></script>
-				<script src="${microlight}"></script>
+				<script src="${tailwindUri}"></script>
+				<script src="${showdownUri}"></script>
+				<script src="${microlightUri}"></script>
 				<style>
 				.code {
 					white-space : pre;
@@ -84,9 +154,5 @@ class OpenAiViewProvider{
 }
 OpenAiViewProvider.viewType = 'aisupport.chatView';
 // this method is called when your extension is deactivated
-function deactivate() {}
-
-module.exports = {
-    activate,
-    deactivate
-};
+function deactivate() { }
+exports.deactivate = deactivate;

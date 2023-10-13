@@ -19,8 +19,24 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.startAi",
-        "title": "startAi"
+        "command": "aisupport.Ask",
+        "title": "AskAi"
+      },
+      {
+        "command": "aisupport.explain",
+        "title": "Ai Explain"
+      },
+      {
+        "command": "aisupport.secure",
+        "title": "Ai Secure"
+      },
+      {
+        "command": "aisupport.optimize",
+        "title": "Ai Optimise"
+      },
+      {
+        "command": "aisupport.refractor",
+        "title": "Ai Refractor"
       }
     ],
     "viewsContainers": {
@@ -32,13 +48,63 @@
         }
       ]
     },
+    "menus": {
+      "editor/context": [
+        {
+          "command": "aisupport.Ask",
+          "when": "editorTextFocus",
+          "group": "chatgpt-menu-group@1"
+        },
+        {
+          "command": "aisupport.explain",
+          "when": "editorHasSelection",
+          "group": "chatgpt-menu-group@2"
+        },
+        {
+          "command": "aisupport.secure",
+          "when": "editorHasSelection",
+          "group": "chatgpt-menu-group@3"
+        },
+        {
+          "command": "aisupport.optimize",
+          "when": "editorHasSelection",
+          "group": "chatgpt-menu-group@4"
+        },
+        {
+          "command": "aisupport.refractor",
+          "when": "editorHasSelection",
+          "group": "chatgpt-menu-group@5"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "aisupport.Ask"
+        },
+        {
+          "command": "aisupport.explain",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "aisupport.secure",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "aisupport.optimize",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "aisupport.refractor",
+          "when": "editorHasSelection"
+        }
+      ]
+    },
     "views": {
       "aisupport": [
-				{
-					"type": "webview",
-					"id": "aisupport.chatView",
-					"name": "AiSupport"
-				}
+        {
+          "type": "webview",
+          "id": "aisupport.chatView",
+          "name": "AiSupport"
+        }
       ]
     },
     "configuration": {
@@ -47,13 +113,63 @@
       "properties": {
         "aisupport.apikey": {
           "type": "string",
-          "description": "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",
+          "default":"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",
+          "description": "Your personnel openai apikey",
           "order": 1
         },
         "aisupport.organization": {
           "type": "string",
-          "description": "org-aWuJHW5k7Nfj1YHKDpuQLIu0",
+          "default": "org-aWuJHW5k7Nfj1YHKDpuQLIu0",
+          "description": "your Organization key",
           "order": 2
+        },
+        "aisupport.system.explain": {
+          "type": "string",
+          "default": "You are a coding coach ",
+          "description": "The system prompt  used for explaining the selected code",
+          "order": 3
+        },
+        "aisupport.promptPrefix.explain": {
+          "type": "string",
+          "default": "Explain what this code does: ",
+          "description": "The prompt prefix used for explaining the selected code",
+          "order": 4
+        },
+        "aisupport.system.secure": {
+          "type": "string",
+          "default": "You are a security consultant ",
+          "description": "The system prompt  used for securing the selected code",
+          "order": 5
+        },
+        "aisupport.promptPrefix.secure": {
+          "type": "string",
+          "default": "Secure this code : ",
+          "description": "The system prompt used for securing the selected code",
+          "order": 6
+        },
+        "aisupport.system.optimize": {
+          "type": "string",
+          "default": "You are a coding coach ",
+          "description": "The system prompt used for optimizing the selected code",
+          "order": 7
+        },
+        "aisupport.promptPrefix.optimize": {
+          "type": "string",
+          "default": "Optimise this code : ",
+          "description": "The prompt prefix used for optimizing the selected code",
+          "order": 8
+        },
+        "aisupport.system.refractor": {
+          "type": "string",
+          "default": "You are a coding coach ",
+          "description": "The system prompt used for refractoring the selected code",
+          "order": 9
+        },
+        "aisupport.promptPrefix.refractor": {
+          "type": "string",
+          "default": "refractor this code : ",
+          "description": "The prompt prefix used for refractoring the selected code",
+          "order": 10
         }
       }
     }
@@ -77,6 +193,10 @@
     "@types/axios": "^0.14.0",
     "axios": "^1.5.1",
     "chatgpt": "^5.2.5",
-    "openai": "^4.11.1"
+    "document": "^0.4.7",
+    "microlight": "^0.0.7",
+    "openai": "^4.11.1",
+    "showdown": "^2.1.0",
+    "window": "^4.2.7"
   }
 }
